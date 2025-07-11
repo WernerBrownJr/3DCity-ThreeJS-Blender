@@ -14,8 +14,6 @@ body {
     height: 100%;
     top: 0;
     left: 0;
-    background: url(resources/images/daikanyama.jpg) no-repeat center center;
-    background-size: cover;
 }
 
 #experience-canvas {
