@@ -44,6 +44,9 @@ let lightIntensities = {
 let day = true;
 let mixer;
 
+let lastTime = 0;
+const targetFPS = 30;
+const frameInterval = 1000 / targetFPS; // 16.67ms for 60 FPS
 
 // RENDERER //
 renderer.setSize(sizes.width, sizes.height);
@@ -64,7 +67,7 @@ sun.shadow.camera.right = 20;
 sun.shadow.camera.top = 20;
 sun.shadow.camera.bottom = -20;
 sun.shadow.normalBias = 0.2;
-sun.shadow.intensity = 1;
+sun.shadow.intensity = 0.5;
 sun.shadow.mapSize.height = 4096;
 sun.shadow.mapSize.width = 4096;
 
@@ -189,6 +192,7 @@ loader.load('SceneBasicTextures8.glb', function (glb) {
     const model = glb.scene;
     const animations = glb.animations;
 
+    // shadows have biggest impact, fix that
     model.traverse(child => {
         if (child.isMesh) {
             child.castShadow = true;
@@ -199,33 +203,33 @@ loader.load('SceneBasicTextures8.glb', function (glb) {
     // manipulate lights
     model.traverse(child => {
         if (child.isLight && child.type === 'PointLight') {
-            if (child.name === 'PLCar01L') {
-                child.castShadow = true;
-            }
-            if (child.name === 'PLCar02L') {
-                child.castShadow = true;
-            }
-            if (child.name === 'PLCar03L') {
-                child.castShadow = true;
-            }
-            if (child.name === 'PLCar01R') {
-                child.castShadow = true;
-            }
-            if (child.name === 'PLCar02R') {
-                child.castShadow = true;
-            }
-            if (child.name === 'PLCar03R') {
-                child.castShadow = true;
-            }
-            // Enable shadow casting for each _MOVING_ point light
+            // eats 20% GPU usage when using these shadows, they are unnecessary
+            // if (child.name === 'PLCar01L') {
+            //     child.castShadow = true;
+            // }
+            // if (child.name === 'PLCar02L') {
+            //     child.castShadow = true;
+            // }
+            // if (child.name === 'PLCar03L') {
+            //     child.castShadow = true;
+            // }
+            // if (child.name === 'PLCar01R') {
+            //     child.castShadow = true;
+            // }
+            // if (child.name === 'PLCar02R') {
+            //     child.castShadow = true;
+            // }
+            // if (child.name === 'PLCar03R') {
+            //     child.castShadow = true;
+            // }
+            //Enable shadow casting for each _MOVING_ point light
 
-            child.distance = 10;
-            // Configure shadow properties
-            child.shadow.mapSize.width = 1024; // Shadow resolution (512-2048; balance quality vs. performance)
-            child.shadow.mapSize.height = 1024;
-            child.shadow.camera.near = 0.1; // Adjust based on your scene scale
-            child.shadow.camera.far = 100; // Match light’s effective range (tweak if too short/long)
-            child.shadow.bias = -0.0001; // Reduce shadow acne (adjust if artifacts appear)
+            child.distance = 5;
+            // child.shadow.mapSize.width = 256; // Shadow resolution (512-2048; balance quality vs. performance)
+            // child.shadow.mapSize.height = 256;
+            // child.shadow.camera.near = 0.1; // Adjust based on your scene scale
+            // child.shadow.camera.far = 100; // Match light’s effective range (tweak if too short/long)
+            // child.shadow.bias = -0.0001; // Reduce shadow acne (adjust if artifacts appear)
 
             child.intensity = lightIntensities.carLights;
         }
@@ -267,11 +271,16 @@ function handleResize() {
 
 window.addEventListener("resize", handleResize);
 
-function animate() {
-    renderer.render(scene, camera);
+function animate(currentTime) {
+    const deltaTime = currentTime - lastTime;
+    if (deltaTime >= frameInterval) {
+        renderer.render(scene, camera);
 
-    const delta = clock.getDelta();
-    if (mixer) mixer.update(delta);
+        const delta = clock.getDelta();
+        if (mixer) mixer.update(delta);
+
+        lastTime = currentTime - (deltaTime % frameInterval);
+    }
 
 }
 renderer.setAnimationLoop(animate);
@@ -281,9 +290,11 @@ document.getElementById("day-night").addEventListener("click", DayNightSwitch, f
 function DayNightSwitch() {
     // make dark/light hdri
     if (day === true) {
+        // this whole hdr uses 2GB GPU memory total
         new RGBELoader().load('night-sky-clear.hdr', (environmentMap) => {
             environmentMap.mapping = THREE.EquirectangularReflectionMapping;
             scene.background = environmentMap;
+            // this uses about 1GB of GPU memory
             scene.environment = environmentMap;
             sun.intensity = 0;
             day = false;
