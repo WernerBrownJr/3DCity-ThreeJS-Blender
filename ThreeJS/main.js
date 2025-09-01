@@ -66,7 +66,6 @@ sun.shadow.mapSize.width = 4096;
 scene.add(sun);
 // // // // //
 
-
 /// BUILDING LIGHT ///
 const rectLTecBuilding1 = new THREE.RectAreaLight(0x9700FF, 2, 0.1, 13.5);// in, width, height
 rectLTecBuilding1.position.set(1.08, 3, 3.5);
@@ -179,7 +178,7 @@ controls.update();
 // // // // // // //
 
 // LOADER FOR GLTF SCENE//
-loader.load('SceneBasicTextures8.glb', function (glb) {
+loader.load('SceneFinal.glb', function (glb) {
     const model = glb.scene;
     const animations = glb.animations;
 
