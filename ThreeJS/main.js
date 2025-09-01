@@ -1,11 +1,5 @@
-// 64225763 - COS3712 - CG - 2025 - Assessment 2 (PART1)
+// 64225763 - COS3712 - CG - 2025 - Assessment 2 (PART2)
 // Werner Brown
-
-// Set up so that lights switch off during day
-// Switch on during night
-// didnt work // 
-
-// Optimize performance // 
 // // // // 
 
 import * as THREE from 'three';
@@ -25,28 +19,26 @@ const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
 const controls = new OrbitControls(camera, canvas);
 
 const sun = new THREE.DirectionalLight(0xffffff, 2);
-const light = new THREE.DirectionalLight(0xFFFFFF);
 const clock = new THREE.Clock();
 
 RectAreaLightUniformsLib.init();
 
+// VARIABLES //
 const sizes = {
     width: window.innerWidth,
     height: window.innerHeight
 }
-
 let lightIntensities = {
     streetLights: 5,
     carLights: 3,
     droneSpotLights: 3000
 }
-
 let day = true;
 let mixer;
-
 let lastTime = 0;
-const targetFPS = 30;
+const targetFPS = 30; // CHANGE TO AFFECT FPS OF WEBSITE //
 const frameInterval = 1000 / targetFPS; // 16.67ms for 60 FPS
+// // // // //
 
 // RENDERER //
 renderer.setSize(sizes.width, sizes.height);
@@ -58,7 +50,7 @@ renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 0.45;
 // // // // // 
 
-// Sunlight //
+// SUN LIGHT //
 sun.castShadow = true;
 sun.intensity = 20;
 sun.position.set(45, 20, 45);
@@ -75,7 +67,7 @@ scene.add(sun);
 // // // // //
 
 
-/// other lights ///
+/// BUILDING LIGHT ///
 const rectLTecBuilding1 = new THREE.RectAreaLight(0x9700FF, 2, 0.1, 13.5);// in, width, height
 rectLTecBuilding1.position.set(1.08, 3, 3.5);
 rectLTecBuilding1.lookAt(0, 3.5, 90);
@@ -90,7 +82,6 @@ const rectLTecBuilding3 = new THREE.RectAreaLight(0x9700FF, 2, 1, 6);// in, widt
 rectLTecBuilding3.position.set(0, 6.5, 3.1);
 rectLTecBuilding3.lookAt(0, 6, 90);
 scene.add(rectLTecBuilding3)
-
 // // // // // // 
 
 // STREET LIGHTS //
@@ -174,7 +165,6 @@ TrafficRectLight44.position.set(-15.2, 0.7, -15.2);
 TrafficRectLight44.lookAt(-15.2, -170, -15.2);
 scene.add(TrafficRectLight44)
 // // // // // // 
-
 // const rectLightHelper = new RectAreaLightHelper(TrafficRectLight43);
 // TrafficRectLight43.add(rectLightHelper);
 /// /// /// /// ///
@@ -183,7 +173,7 @@ scene.add(TrafficRectLight44)
 camera.position.z = 30;
 camera.position.x = 30;
 camera.position.y = 20;
-
+// // // //
 // CAMERA CONTROLS //
 controls.update();
 // // // // // // //
@@ -193,7 +183,7 @@ loader.load('SceneBasicTextures8.glb', function (glb) {
     const model = glb.scene;
     const animations = glb.animations;
 
-    // shadows have biggest impact, fix that
+    // shadows have biggest impact, fix that  // FIXED // 
     model.traverse(child => {
         if (child.isMesh) {
             child.castShadow = true;
@@ -252,15 +242,15 @@ loader.load('SceneBasicTextures8.glb', function (glb) {
 });
 // // // // 
 
-// LOADER FOR ENVIRONMENT MAP //
+// LOADER FOR INITIAL ENVIRONMENT MAP //
 new RGBELoader().load('daySky1K.hdr', (environmentMap) => {
     environmentMap.mapping = THREE.EquirectangularReflectionMapping;
     scene.background = environmentMap;
     scene.environment = environmentMap;
 })
-
 // // // //
 
+// SCREEN RESIZE //
 function handleResize() {
     sizes.width = window.innerWidth;
     sizes.height = window.innerHeight;
@@ -269,9 +259,10 @@ function handleResize() {
 
     renderer.setSize(sizes.width, sizes.height);
 }
-
 window.addEventListener("resize", handleResize);
+// // // //
 
+// ANIMATION LOOP //
 function animate(currentTime) {
     const deltaTime = currentTime - lastTime;
     if (deltaTime >= frameInterval) {
@@ -285,11 +276,10 @@ function animate(currentTime) {
 
 }
 renderer.setAnimationLoop(animate);
+// // // // // 
 
-document.getElementById("day-night").addEventListener("click", DayNightSwitch, false);
-
+// DAY OR NIGHT MODE //  
 function DayNightSwitch() {
-    // make dark/light hdri
     if (day === true) {
         // this whole hdr uses 2GB GPU memory total
         new RGBELoader().load('night-sky-clear.hdr', (environmentMap) => {
@@ -313,6 +303,9 @@ function DayNightSwitch() {
         })
     }
 }
+document.getElementById("day-night").addEventListener("click", DayNightSwitch, false);
+// // // // // //
+
 
 // Error notes
 // Error: Fragment shader texture image units count exceeds MAX_TEXTURE_IMAGE_UNITS(16)
